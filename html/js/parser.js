@@ -147,7 +147,19 @@ function updateNet(net_last, net) {
 	set("net-down-speed", parseSize(rx_speed, "bit/s"))
 	set("net-down-speed-bytes", parseSize(rx_speed / 8, "B/s"))
 
-	let netspeed = (net.speed != -1) ? parseSize(net.speed * 1000, "bit/s") : "Unknown" 
+	let netspeed
+
+	if (typeof net.speed === "string" && net.speed.includes(";")) {
+		let parts = net.speed.split(";")
+		if (parts.length === 3) {
+			netspeed = `Ping: ${parts[0]} ms, Down: ${parts[1]} mbps, Up: ${parts[2]} mbps`
+		} else {
+			netspeed = "Invalid format"
+		}
+	} else {
+		netspeed = (net.speed !== -1) ? parseSize(net.speed * 1000, "bit/s") : "Unknown"
+	}
+
 	mkItem("net-list", "speed", "Connection speed", netspeed)
 
 	mkItem("net-list", "arrow_upward", "Upload", [
