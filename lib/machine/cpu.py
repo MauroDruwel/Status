@@ -117,11 +117,21 @@ class CPU:
 				cpu_model = re.sub(".*Model.*:", "", line, 1).strip()
 
 		count = os.cpu_count() or 1
-		cores = get(f"/sys/devices/system/cpu/cpu{count - 1}/topology/core_id", isint=True) + 1
+		try:
+			core_val = get(f"/sys/devices/system/cpu/cpu{count - 1}/topology/core_id", isint=True)
+			cores = (core_val + 1) if core_val is not None else count
+		except Exception:
+			cores = count
 
+		cache_size = None
 		caches = [x for x in ls("/sys/devices/system/cpu/cpu0/cache") if "index" in x]
 		if len(caches):
-			cache_size = int(get(f"{caches[-1]}/size").rstrip("K"))
+			try:
+				raw_size = get(f"{caches[-1]}/size")
+				if raw_size:
+					cache_size = int(raw_size.rstrip("K"))
+			except Exception:
+				cache_size = None
 
 		return {
 			"model": cpu_model,

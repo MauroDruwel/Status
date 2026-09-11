@@ -40,6 +40,21 @@ async def api(request):
 		return web.Response(text=report, status=500)
 
 
+@routes.get("/api/speedtest")
+@routes.post("/api/speedtest")
+async def speedtest_endpoint(request):
+	try:
+		runner = machine.network.get_speedtest_runner()
+		triggered = runner.trigger()
+		return web.json_response({
+			"triggered": triggered,
+			"running": runner.is_running,
+			"result": runner.get_result()
+		})
+	except Exception as e:
+		return web.json_response({"error": str(e)}, status=500)
+
+
 @web.middleware
 async def redirector(request, handler):
 	try:
