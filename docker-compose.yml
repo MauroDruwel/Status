@@ -1,4 +1,3 @@
-version: "2"
 services:
   app:
     container_name: status_app
@@ -6,11 +5,11 @@ services:
     volumes:
       - "/etc/os-release:/host_root/etc/os-release:ro"
       - "/etc/hostname:/host_root/etc/hostname:ro"
-      - "/proc:/host_root/proc"
-      - "/proc/mounts:/host_root/proc/mounts"
+      - "/proc:/host_root/proc:ro"
       - "/home:/home:ro"
       - "/tmp:/tmp:ro"
       - "/mnt:/mnt:ro"
       - "/media:/media:ro"
       - "/run/media:/run/media:ro"
     network_mode: "host"
+    restart: "unless-stopped"

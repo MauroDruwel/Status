@@ -37,7 +37,7 @@ function updateCPU(cpu) {
 	let _values_cpu = []
 	_values_cpu.addNode(`${Math.round(cpu.utilisation * 100)}%`)
 	_values_cpu.addNode(freq, freq != "")
-	_values_cpu.addNode(`${temp} °C`, temp)
+	_values_cpu.addNode(`${Math.round(temp* 10) / 10} °C`, temp)
 	set("main-cpu", _values_cpu.join(", "))
 
 	mkBar("cpu-bar",
@@ -149,17 +149,26 @@ function updateNet(net_last, net) {
 
 	let netspeed
 
-	if (typeof net.speed === "string" && net.speed.includes(";")) {
-		let parts = net.speed.split(";")
-		if (parts.length === 3) {
-			netspeed = `Ping: ${parts[0]} ms, Down: ${parts[1]} mbps, Up: ${parts[2]} mbps`
+	if (typeof net.speed === "object" && net.speed !== null) {
+		if (net.speed.ping !== undefined && net.speed.download !== undefined && net.speed.upload !== undefined) {
+			netspeed = `Ping: ${net.speed.ping} ms, Down: ${net.speed.download} mbps, Up: ${net.speed.upload} mbps`
 		} else {
-			netspeed = "Invalid format"
+			netspeed = "Running speedtest..."
+		}
+	} else if (typeof net.speed === "string") {
+		if (net.speed.includes(";")) {
+			let parts = net.speed.split(";")
+			if (parts.length === 3) {
+				netspeed = `Ping: ${parts[0]} ms, Down: ${parts[1]} mbps, Up: ${parts[2]} mbps`
+			} else {
+				netspeed = "Invalid format"
+			}
+		} else {
+			netspeed = net.speed
 		}
 	} else {
-		netspeed = (net.speed !== -1) ? parseSize(net.speed * 1000, "bit/s") : "Unknown"
+		netspeed = (net.speed !== -1 && net.speed !== null) ? parseSize(net.speed * 1000, "bit/s") : "Unknown"
 	}
-
 	mkItem("net-list", "speed", "Connection speed", netspeed)
 
 	mkItem("net-list", "arrow_upward", "Upload", [

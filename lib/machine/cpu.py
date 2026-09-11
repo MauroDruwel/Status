@@ -9,9 +9,9 @@ from .utils import get, ls, ls_glob, basename, parse_temperature
 
 # CPU thermal zone names for various devices
 cpu_thermals = [
-	"coretemp",		# Most desktop computers
+	"coretemp",		# Intel-based systems
+	"k10temp",		# AMD-based systems
 	"cpu_thermal",	# Raspberry Pis
-	"k10temp",		# My AMD-based terminal
 ]
 
 
@@ -28,6 +28,7 @@ class CPU:
 		self.cpu_model = cpu_info["model"]
 		self.cpu_cache = cpu_info["cache"]
 		self.cores = cpu_info["cores"]
+		self.count = cpu_info["count"]
 		self.cpu_thermal = find_cpu_thermal()
 
 
@@ -37,7 +38,7 @@ class CPU:
 			"utilisation": (await self.get_utilisation()),
 			"temperatures": self.get_temperatures(),
 			"frequencies": self.get_frequencies(),
-			"count": self.get_count(),
+			"count": self.count,
 			"cache": self.cpu_cache,
 			"cores": self.cores
 		}
@@ -61,14 +62,14 @@ class CPU:
 		sensor = thermal["location"]
 		sensor_name = thermal["name"]
 		temps = {}
-	
+
 		for entry in ls_glob(sensor, "temp*_input"):
 			key = basename(entry).replace("_input", "")
 			zone = path(sensor, key)
 			if exists(f"{zone}_label"):
 				key = get(f"{zone}_label")
 				if key.startswith("Package id"): continue
-	
+
 			current = get(f"{zone}_input", isint=True)
 			meltdown = get(f"{zone}_crit", isint=True)
 			divide = sensor_name not in ["cputhermal"]
@@ -80,7 +81,7 @@ class CPU:
 	@staticmethod
 	def get_frequencies():
 		freqs = {}
-	
+
 		for entry in ls("/sys/devices/system/cpu/"):
 			f = basename(entry)
 			if f.startswith("cpu") and f[-1:].isnumeric():
@@ -103,29 +104,30 @@ class CPU:
 
 
 	@staticmethod
-	def get_count():
-		return os.cpu_count()
-
-
-	@staticmethod
 	def get_cpu_info():
 		cpu_model = None
 		cache_size = None
-		cores = 1
+
 		cpu_info = get("/proc/cpuinfo")
 
 		for line in cpu_info.split("\n"):
 			if "model name" in line:
 				cpu_model = re.sub(".*model name.*:", "", line, 1).strip()
-			if "cache size" in line:
-				cache_size = int(re.sub(".*cache size.*:", "", line, 1).strip().split(" ")[0])
-			if "cpu cores" in line:
-				cores = int(re.sub(".*cpu cores.*:", "", line, 1).strip())
+			if "Model" in line:
+				cpu_model = re.sub(".*Model.*:", "", line, 1).strip()
+
+		count = os.cpu_count() or 1
+		cores = get(f"/sys/devices/system/cpu/cpu{count - 1}/topology/core_id", isint=True) + 1
+
+		caches = [x for x in ls("/sys/devices/system/cpu/cpu0/cache") if "index" in x]
+		if len(caches):
+			cache_size = int(get(f"{caches[-1]}/size").rstrip("K"))
 
 		return {
 			"model": cpu_model,
 			"cache": cache_size,
-			"cores": cores
+			"cores": cores,
+			"count": count
 		}
 
 

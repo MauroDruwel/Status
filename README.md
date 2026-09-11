@@ -28,15 +28,28 @@ This will take you just a few seconds. It's up to you which one you choose :)
 
 **:heavy_check_mark: Recommended.** Status has access to all virtual filesystems in your OS, which means more information and most reliable values.
 
+:package: You can skip commands with _(venv only)_ comment above if you already have `python3-aiohttp` distro package installed.
+
 ```
 # Clone the repo
 git clone https://github.com/dani3l0/Status && cd Status
 
-# Install required modules
+# Prepare virtual environment in 'venv' dir (venv only)
+python3 -m venv venv
+
+# Use the virtual environment (venv only)
+source ./venv/bin/activate
+
+# Install required modules (venv only)
 pip3 install -r requirements.txt
 
 # Run Status!
 python3 status.py
+```
+
+In a one combined command (like for `systemd` service), you can use this as `ExecStart`:
+```
+sh -c "source ./venv/bin/activate && python3 status.py"
 ```
 
 ### :whale: Docker

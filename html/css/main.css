@@ -164,7 +164,7 @@ button:hover {
 .list .value {
 	opacity: .58;
 }
-.list .arrow {
+.list .arrow, .list .checkbox {
 	background: hsl(var(--color), 14%, 14%);
 	color: hsl(var(--color), 90%, 90%);
 	font-size: 18px;
@@ -178,6 +178,24 @@ button:hover {
 }
 .list .arrow::after {
 	content: "chevron_right";
+}
+.list .checkbox {
+	padding: 4px;
+	font-size: 22px;
+}
+.list .checkbox::after {
+	content: "close";
+}
+.list .checkbox.enabled {
+	color: hsl(144deg, 50%, 20%);
+	background: hsl(144deg, 50%, 80%);
+}
+.light .list .checkbox.enabled {
+	color: hsl(144deg, 50%, 10%);
+	background: hsl(144deg, 50%, 70%);
+}
+.list .checkbox.enabled::after {
+	content: "check";
 }
 
 .sided {

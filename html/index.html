@@ -164,7 +164,7 @@
 			<div class="contents">
 				<div class="center">
 					<div class="themes">
-						<div class="theme light selected" onclick="selectTheme(true)">
+						<div class="theme light" onclick="selectTheme(true)">
 							<div class="preview">
 								<div class="box">
 									<i>chevron_right</i>
@@ -186,6 +186,7 @@
 						</div>
 					</div>
 				</div>
+
 				<div class="center">
 					<div class="accents">
 						<i class="red"></i>
@@ -197,7 +198,21 @@
 						<i class="purple"></i>
 						<i class="pink"></i>
 					</div>
-				</div>
+				</div><br>
+
+				<div class="center">
+					<div class="list" style="width: 100%;">
+						<div class="item clickable" id="autoDarkSwitch" onclick="setAutoTheme()">
+							<i>contrast</i>
+							<div class="text">
+								<div class="name">Use platform theme</div>
+								<div class="value" id="main-storage">App will sync its dark theme with your device's one</div>
+							</div>
+							<i class="checkbox"></i>
+						</div>
+					</div>
+				</div><br>
+
 			</div>
 		</div>
 	</div>
