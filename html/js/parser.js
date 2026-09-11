@@ -147,29 +147,44 @@ function updateNet(net_last, net) {
 	set("net-down-speed", parseSize(rx_speed, "bit/s"))
 	set("net-down-speed-bytes", parseSize(rx_speed / 8, "B/s"))
 
-	let netspeed
+	let speedValues = []
 
-	if (typeof net.speed === "object" && net.speed !== null) {
-		if (net.speed.ping !== undefined && net.speed.download !== undefined && net.speed.upload !== undefined) {
-			netspeed = `Ping: ${net.speed.ping} ms, Down: ${net.speed.download} mbps, Up: ${net.speed.upload} mbps`
+	if (typeof net.speedtest === "object" && net.speedtest !== null) {
+		let down = net.speedtest.download ? `${net.speedtest.download} Mbit/s` : "N/A"
+		let up = net.speedtest.upload ? `${net.speedtest.upload} Mbit/s` : "N/A"
+		let ping = (net.speedtest.ping !== undefined && net.speedtest.ping !== null) ? `${net.speedtest.ping} ms` : "N/A"
+		let line1 = `Down: ${down}  •  Up: ${up}`
+		let line2 = `Ping: ${ping}`
+		if (net.speedtest.timestamp) {
+			let diffMin = Math.round((Date.now() / 1000 - net.speedtest.timestamp) / 60)
+			let timeStr = diffMin <= 1 ? "Just now" : `${diffMin}m ago`
+			line2 += ` (${timeStr})`
+		}
+		speedValues = [line1, line2]
+	} else if (typeof net.speed === "string" && net.speed.includes(";")) {
+		let parts = net.speed.split(";")
+		if (parts.length === 3) {
+			speedValues = [`Down: ${parts[1]} Mbit/s  •  Up: ${parts[2]} Mbit/s`, `Ping: ${parts[0]} ms`]
 		} else {
-			netspeed = "Running speedtest..."
+			speedValues = ["Invalid format"]
 		}
 	} else if (typeof net.speed === "string") {
-		if (net.speed.includes(";")) {
-			let parts = net.speed.split(";")
-			if (parts.length === 3) {
-				netspeed = `Ping: ${parts[0]} ms, Down: ${parts[1]} mbps, Up: ${parts[2]} mbps`
-			} else {
-				netspeed = "Invalid format"
-			}
-		} else {
-			netspeed = net.speed
-		}
+		speedValues = [net.speed]
 	} else {
-		netspeed = (net.speed !== -1 && net.speed !== null) ? parseSize(net.speed * 1000, "bit/s") : "Unknown"
+		speedValues = [(net.speed !== -1 && net.speed !== null) ? parseSize(net.speed * 1000, "bit/s") : "Unknown"]
 	}
-	mkItem("net-list", "speed", "Connection speed", netspeed)
+
+	mkItem("net-list", "speed", "Connection speed", speedValues)
+
+	let speedItem = get("net-list-speed")
+	if (speedItem && !speedItem.dataset.clickable) {
+		speedItem.dataset.clickable = "true"
+		speedItem.classList.add("clickable")
+		speedItem.title = "Click to run speedtest"
+		speedItem.onclick = () => {
+			fetch("api/speedtest", { method: "POST" })
+		}
+	}
 
 	mkItem("net-list", "arrow_upward", "Upload", [
 		`${parseSize(net.tx / 1000, "B")} since boot`
